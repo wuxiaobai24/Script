@@ -12,8 +12,9 @@ def get_all_questions():
 
 def get_title_slug(question_id):
     all_problems = get_all_questions()
+    question_id = str(question_id)
     def func(question):
-        return question['stat']['question_id'] == question_id
+        return question['stat']['frontend_question_id'] == question_id
     res = list(filter(func, all_problems['stat_status_pairs']))
     assert len(res) == 1
     # print(res[0])
