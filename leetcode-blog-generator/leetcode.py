@@ -56,7 +56,7 @@ def get_question(question_id):
     data = {}
     data['title'] = str(question_id) + '. ' + question['title']
     data['date'] = datetime.datetime.now().isoformat()
-    data['tags'] = [tag['name'] for tag in question['topicTags']]
+    data['tags'] = [tag['name'] for tag in question['topicTags']] + ['LeetCode']
     data['categories'] = ['LeetCode']
     url = 'https://leetcode-cn.com/problems/'
     content = '今天的题目是[%s](%s)。\n\n' % (data['title'], url + title_slug) 
