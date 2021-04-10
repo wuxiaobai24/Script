@@ -7,13 +7,12 @@ Created on Mon Feb 26 19:50:29 2018
 """
 
 import requests
-import sched
 import time
 import os
 import sys
 import argparse
+import logging
 
-schedule = sched.scheduler(time.time, time.sleep)
 
 username=""
 passwd = ""
@@ -34,19 +33,22 @@ parser.add_argument('--gap', '-g', type=int,
                     dest='gap', default=5 * 60,
                     help = 'check gap(second)')
 
+logging.basicConfig(filename='drcom.log', level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-def tryLogin(inc):
-    while isLogin():
-        login()
-    schedule.enter(inc, 0, tryLogin, (inc, ))
+def tryLogin(gap):
+    while True:
+        if isLogin():
+            sleep(gap)
+        else:
+            login()
 
 
 def daemon():
     '''become daemon'''
-    print('become daemon')
-    print('PID is %d' % os.getpid())
+    logging.info('become daemon')
+    logging.info('PID is %d' % os.getpid())
     file_path = os.path.abspath('.') + '/kill_daemon.sh'
-    print('kill shell in',file_path)
+    logging.info('kill shell in {}'.format(file_path))
     
     pid = os.fork()
     if pid:
@@ -72,6 +74,7 @@ def daemon():
     os.system('chmod +x %s' % file_path)
 
 def login():
+    logging.info('login')
     url = 'http://172.30.255.2/a30.htm'
     headers = {}
     headers['Accept'] = 'ext/html,application/xhtml+xml,application/xml' \
@@ -79,7 +82,7 @@ def login():
     headers['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) ' \
     'Gecko/20100101 Firefox/58.0'
     headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    headers['Content-Length'] = '51'
+    # headers['Content-Length'] = '51'
 
     data = {'0MKKey': '登　录'.encode('gb2312'),
             'DDDDD': username,
@@ -87,10 +90,10 @@ def login():
     r = requests.post(url, data=data, headers=headers)
     r.encoding = 'gb2312'
     if '您已经成功登录。' in r.text:
-        print('Success')
+        logging.info('Login Success')
         return True
     else:
-        print('Fail')
+        logging.info('Login Fail')
         return False
 
 
@@ -98,10 +101,13 @@ def isLogin():
     try:
         r = requests.get('http://www.baidu.com/', timeout=10)
         if r.status_code != requests.status_codes.codes.ok:
+            logging.info('isLogin return False, status_code is {}'.format(r.status_code))
             return False
         else:
+            logging.info('isLogin return True')
             return True
     except Exception as e:
+        logging.info('isLogin Exception: {}'.format(e))
         return False
 
 
@@ -112,8 +118,9 @@ if __name__ == '__main__':
     username = args.username
     passwd = args.password
     gap = args.gap
-    schedule.run()
+    logging.info('Gap is {}'.format(gap))
     if gap <= 0:
         login()
     else:
         tryLogin(gap)
+    logging.info('Exit')
