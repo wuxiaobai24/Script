@@ -38,7 +38,7 @@ logging.basicConfig(filename='drcom.log', level=logging.INFO, format="%(asctime)
 def tryLogin(gap):
     while True:
         if isLogin():
-            sleep(gap)
+            time.sleep(gap)
         else:
             login()
 
