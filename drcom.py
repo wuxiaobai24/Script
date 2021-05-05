@@ -16,6 +16,7 @@ import logging
 
 username=""
 passwd = ""
+url = 'http://172.30.255.2/a30.htm'
 
 parser = argparse.ArgumentParser(description='a script for login dr.com in SZU')
 parser.add_argument('--daemon', '-d',
@@ -32,6 +33,9 @@ parser.add_argument('--passwd', '-p', type=str,
 parser.add_argument('--gap', '-g', type=int,
                     dest='gap', default=5 * 60,
                     help = 'check gap(second)')
+
+parser.add_argument('--drcom', help='use drcom.szu.edu.cn as login url', action='store_true')
+parser.add_argument('--url', help='login url', type=str, default = None)
 
 logging.basicConfig(filename='drcom.log', level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -75,7 +79,6 @@ def daemon():
 
 def login():
     logging.info('login')
-    url = 'http://172.30.255.2/a30.htm'
     headers = {}
     headers['Accept'] = 'ext/html,application/xhtml+xml,application/xml' \
     ';q=0.9,*/*;q=0.8r'
@@ -89,6 +92,7 @@ def login():
             'upass': passwd}
     r = requests.post(url, data=data, headers=headers)
     r.encoding = 'gb2312'
+    print(r.text)
     if '您已经成功登录。' in r.text:
         logging.info('Login Success')
         return True
@@ -99,7 +103,7 @@ def login():
 
 def isLogin():
     try:
-        r = requests.get('http://www.baidu.com/', timeout=10)
+        r = requests.get('http://www.baidu.com/', timeout=10, allow_redirects=False)
         if r.status_code != requests.status_codes.codes.ok:
             logging.info('isLogin return False, status_code is {}'.format(r.status_code))
             return False
@@ -118,6 +122,13 @@ if __name__ == '__main__':
     username = args.username
     passwd = args.password
     gap = args.gap
+
+    if args.drcom:
+        url = "https://drcom.szu.edu.cn"
+    if args.url:
+        url = args.url
+    logging.info('Url is {}'.format(url))
+
     logging.info('Gap is {}'.format(gap))
     if gap <= 0:
         login()
